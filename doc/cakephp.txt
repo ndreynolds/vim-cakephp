@@ -1,0 +1,94 @@
+*cakephp.txt* 
+
+cakephp.vim -- a plugin for navigating and managing CakePHP applications with vim
+
+Author: Nick Reynolds   |   ndreynolds [AT] gmail [DOT] com
+License: Public Domain
+
+This documentation covers the first release.  I'm hoping to add a lot more features
+as I learn more about vim-script and find the time. Currently, it offers modest support
+for navigating between models, views, and controllers.
+
+INTRODUCTION
+
+Developers that use vim with Ruby on Rails have a great plugin called vim-rails by Tim
+Pope. The plugin offers comprehensive methods for creating, managing, and navigating
+Rails applications. Users can browse the logs, docs, and even fire up a preview url.
+This project aims to bring some--and with any luck, all--of these features to CakePHP
+users, the framework I use at work.
+
+When I first got the idea, I realized there was already a cake.vim plugin. Although 
+it works as advertised, I was hoping for more automatic functionality.  I didn't want
+to have to set any environment variables. Moreover, it only has a small percentage of
+the functionality that vim-rails provides. With that in mind, I set about writing this
+plugin, cakephp.vim, from scratch, with some inspiration from vim-rails.
+
+USE
+
+When you use the plugin's methods from an open buffer that's a CakePHP controller file,
+model file, or view file, the plugin will automatically build the MVC associations.
+
+If you're not in a model, view, or controller, you'll currently get a warning stating
+just that. The reason for this is that the plugin cannot otherwise build the MVC 
+associations. In the next release, I'm hoping to make this more flexible, so that 
+things like :Clog or :Cconf are possible.
+
+The premise for this functionality is that you're using the proper name conventions. For
+example, if your model is called 'post.php', your controller should be 
+'posts_controller.php' and your views should be located under 'views/posts'.
+
+The plugin pluralizes and singularizes these filenames as necessary to build the
+associations. If you have a buffer with 'posts_controller.php' open, the associations
+will look something like this:
+
+    model       => models/post.php
+    controller  => controllers/posts_controller.php
+    views_direc => views/posts/
+    views       => [
+                   add.ctp,
+                   edit.ctp,
+                   index.ctp
+                   ]
+
+There are some irregular nouns where you'll get some unexpected results (e.g. louse => lice). 
+The plurals it generates in these cases may or may not be the same as what Cake itself 
+generates. For these, you'll just have to manage them manually. Worst case scenario, 
+cakephp.vim opens a new file representing a controller with the wrong plural. Quit the 
+buffer and no harm is done.
+
+COMMANDS
+
+The context of two terms that are used frequently:
+    associated: the MVC objects associated with the buffer that the plugin is called from.
+    specified:  what's given as an argument.
+---------------------------------------------------------------------------------------------
+
+:Ccontroller                Opens the associated controller as a buffer. This command
+                            can be augmented as :CVcontroller to open in a vertical split,
+                            and :CScontroller to open in a horizontal split.
+
+:Ccontroller [{name}]       Opens the specified controller. Same as the previous command, but
+                            opens controller 'xyz' even if it is not associated with the file
+                            in the current buffer. The name you supply is pretty flexible. You
+                            can give either the plural or singular base name. So, 'posts' or
+                            'post', to continue with the example from above. 'posts_controller'
+                            will not work.  You probably don't want to type that anyway.
+
+:Cmodel                     Opens the associated model. Can be augmented as :CVmodel to open 
+                            in a vertical split and :CSmodel to open in a horizontal 
+                            split.
+
+:Cmodel [{name}]            Open the specified model. The same name conventions as the 
+                            :Ccontroller above apply. Although there's no good reason to refer
+                            to the model in plural, the command will interpret it anyway.
+
+:Cview                      Opens a file browser buffer in the associated views directory.
+                            This allows you to open one of these views using the file browser.
+
+:Cview [{name}]             Opens the specified view from the associated views directory. For
+                            example, if you call it from 'posts_controller.php', with argument
+                            'index', the command will open the file 'views/posts/index.ctp'
+
+...
+
+More to come.

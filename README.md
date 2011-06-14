@@ -40,10 +40,10 @@ You can also run these with an argument:
 
 * `:Cmodel [name]` to open the specified model.
 
-* `:Cview [name]` to open the specified associated view file.
+* `:Cview [name]` to open the specified and associated view file.
 
 For these to work, you need to use the Cake MVC name conventions (i.e. If the
-model name is `post.php`, the controller should be `posts_controller` and any 
+model name is `post.php`, the controller should be `posts_controller.php` and any 
 views should be located under `views/posts`.)
 
 See doc/cakephp.vim for the full documentation.
