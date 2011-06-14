@@ -20,7 +20,7 @@ and put it wherever you put the others.
 
 That's it.
 
-Getting Started (See doc/cakephp.txt for full documentation)
+Getting Started (see [doc/cakephp.vim](https://github.com/ndreynolds/vim-cakephp/blob/master/doc/cakephp.txt) for full documentation)
 ----------------------------------------------------------------------------------
 
 Start working on your Cake application as you normally would. No need to set any
@@ -46,4 +46,4 @@ For these to work, you need to use the Cake MVC name conventions (i.e. If the
 model name is `post.php`, the controller should be `posts_controller.php` and any 
 views should be located under `views/posts`.)
 
-See doc/cakephp.vim for the full documentation.
+Again, see [doc/cakephp.vim](https://github.com/ndreynolds/vim-cakephp/blob/master/doc/cakephp.txt) for the full documentation.
