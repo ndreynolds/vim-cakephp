@@ -5,11 +5,11 @@
 " Repository: http://github.com/ndreynolds/vim-cakephp
 " License: Public Domain
 
-if exists("g:loaded_vim-cake") || &cp
+if exists("g:loaded_cakephp") || &cp
     finish
 endif
 
-let g:loaded_cake = '1.0'
+let g:loaded_cakephp = '1.0'
 let s:cpo_save = &cpo
 set cpo&vim
 
@@ -34,8 +34,10 @@ function! s:openController(method, ...)
             let controllers_root = fnamemodify(associations.controller,':h')
             let path = controllers_root . s:DS . s:matchController(s:baseName(a:1)) . '.php'
             call s:openWindow(path, a:method)
-        else
+        elseif has_key(associations, 'controller')
             call s:openWindow(associations.controller, a:method)
+        else
+            echo 'Not enough information. Call from a view or model, or specify a controller.'
         endif
     endif
 endfunction
@@ -48,9 +50,10 @@ function! s:openModel(method, ...)
             let models_root = fnamemodify(associations.model,':h')
             let path = models_root . s:DS . s:baseName(a:1) . '.php'
             call s:openWindow(path, a:method)
-        else
-            let associations = s:associate()
+        elseif has_key(associations, 'model')
             call s:openWindow(associations.model, a:method)
+        else
+            echo 'Not enough information. Call from a view or controller, or specify a model.'
         endif
     endif
 endfunction
@@ -64,27 +67,40 @@ function! s:openView(method, ...)
             if len(split(a:1,s:DS)) > 1
                 let controller = split(a:1,s:DS)[0]
                 let view = split(a:1,s:DS)[1]
-                let path = associations.app . s:DS . 'views' . s:DS . s:matchViews(s:baseName(controller)) . s:DS . view . '.ctp'
+                let path = associations.views . s:DS . s:matchView(s:baseName(controller)) . s:DS . view . '.ctp'
+            elseif has_key(associations,'viewd')
+                let path = associations.viewd . s:DS . a:1 . '.ctp'
+                if a:1 == '$'
+                    let path = associations.viewd
+                endif
             else
-                let path = associations.views . s:DS . a:1 . '.ctp'
+                echo 'Not enough information. Use "controller/view" syntax here.'
+                return
             endif
             call s:openWindow(path, a:method)
+        elseif has_key(associations,'viewd')
+            if len(split(associations.name,'_')) > 1
+                " Try to open the current function's view by default within controllers.
+                call s:openWindow(associations.viewd . s:DS . s:getFunctionName() . '.ctp', a:method)
+            else
+                call s:openWindow(associations.viewd, a:method)
+            endif
         else
             call s:openWindow(associations.views, a:method)
         endif
     endif
 endfunction
 
-function! s:openFile(extension, method, ...)
+function! s:openFile(name, extension, method, ...)
     " Open static files like js or css, provided their path is in
     " associations.
     let associations = s:associate()
     if !empty(associations)
         if a:0 > 0
-            let path = associations[a:extension] . s:DS . a:1 . '.' . a:extension
+            let path = associations[a:name] . s:DS . a:1 . '.' . a:extension
             call s:openWindow(path, a:method)
         else
-            call s:openWindow(associations[a:extension], a:method)
+            call s:openWindow(associations[a:name], a:method)
         endif
     endif
 endfunction
@@ -116,17 +132,30 @@ function! s:associate()
     elseif grandparent == 'views'
         let base_name = s:baseName(parent)
         let app_root = ggrandparent_path
+    elseif grandparent == 'webroot'
+        let base_name = 0
+        let app_root = ggrandparent_path
     else
-        echo 'cakephp.vim - Warning: Unable to find a CakePHP app. Call inside a model, controller, or view.' 
+        echo 'Could not find a CakePHP app. Call from inside a model, controller, view, or the webroot.' 
         return {}
     endif
     let associations = {}
+    " Basic associations that don't require being called from an MVC element
+    let associations.name        = name
     let associations.app         = app_root
-    let associations.controller  = app_root . s:DS . 'controllers' . s:DS . s:matchController(base_name) . '.php'
-    let associations.model       = app_root . s:DS . 'models' . s:DS . base_name . '.php'
-    let associations.views       = app_root . s:DS . 'views' . s:DS . s:matchViews(base_name)
     let associations.css         = app_root . s:DS . 'webroot' . s:DS . 'css'
     let associations.js          = app_root . s:DS . 'webroot' . s:DS . 'js'
+    let associations.controllers = app_root . s:DS . 'controllers'
+    let associations.models      = app_root . s:DS . 'models'
+    let associations.views       = app_root . s:DS . 'views'
+    let associations.logs        = app_root . s:DS . 'tmp' . s:DS . 'logs'
+    let associations.config      = app_root . s:DS . 'config'
+    " Specific associations that require being called from an MVC element.
+    if !empty(base_name)
+        let associations.controller = associations.controllers . s:DS . s:matchController(base_name) . '.php'
+        let associations.model      = associations.models . s:DS . base_name . '.php'
+        let associations.viewd      = associations.views . s:DS . s:matchView(base_name)
+    endif
     return associations
 endfunction
 
@@ -198,7 +227,7 @@ function! s:matchController(base_name)
     return s:pluralize(a:base_name) . '_controller'
 endfunction
 
-function! s:matchViews(base_name)
+function! s:matchView(base_name)
     " Get the view directory's name based on the return from baseName()
     return s:pluralize(a:base_name)
 endfunction
@@ -210,35 +239,42 @@ function! s:openDoc(...)
     if a:0 > 0
         let url .= 'search/' . join(split(a:1),'\%20')
     endif
-    if s:OS == 'mac' || s:OS == 'windows'
-        " To avoide any 'ENTER to continue' nonsense, we need to run the
-        " command silently, followed by a window redraw, just in case.
+    if s:OS == 'mac'
         exec 'silent ! open ' . url . ' &'
         exec 'redraw!' 
+    elseif s:OS == 'windows'
+        exec 'silent ! start ' . url 
+        exec 'redraw!' 
     elseif s:OS == 'unix' 
-        " This is really just a best guess, there's no standard *nix command that
-        " achieves the equivalent of 'open' on Mac/Windows.
         exec 'silent ! gnome-open ' . url . ' &'
         exec 'redraw!'
     else
-        echo "cakephp.vim - Error: Couldn't recognize your Operating System."
+        echo "Couldn't recognize your Operating System."
     endif
 endfunction
 
-command! -n=? Ccontroller call s:openController('edit', <f-args>)
-command! -n=? CVcontroller call s:openController('vsplit', <f-args>)
-command! -n=? CScontroller call s:openController('split', <f-args>)
-command! -n=? Cmodel call s:openModel('edit', <f-args>)
-command! -n=? CVmodel call s:openModel('vsplit', <f-args>)
-command! -n=? CSmodel call s:openModel('split', <f-args>)
-command! -n=? Cview call s:openView('edit', <f-args>)
-command! -n=? CVview call s:openView('vsplit', <f-args>)
-command! -n=? CSview call s:openView('split', <f-args>)
-command! -n=? Ccss call s:openFile('css', 'edit', <f-args>)
-command! -n=? CVcss call s:openFile('css', 'vsplit', <f-args>)
-command! -n=? CScss call s:openFile('css', 'split', <f-args>)
-command! -n=? Cjs call s:openFile('js', 'edit', <f-args>)
-command! -n=? CVjs call s:openFile('js', 'vsplit', <f-args>)
-command! -n=? CSjs call s:openFile('js', 'split', <f-args>)
+function! s:getFunctionName()
+    normal [[
+    return split(split(getline('.'))[1], '(')[0]
+endfunction
+
+command! -n=? Ccontroller call s:openController('e', <f-args>)
+command! -n=? CVcontroller call s:openController('vsp', <f-args>)
+command! -n=? CScontroller call s:openController('sp', <f-args>)
+command! -n=? Cmodel call s:openModel('e', <f-args>)
+command! -n=? CVmodel call s:openModel('vsp', <f-args>)
+command! -n=? CSmodel call s:openModel('sp', <f-args>)
+command! -n=? Cview call s:openView('e', <f-args>)
+command! -n=? CVview call s:openView('vsp', <f-args>)
+command! -n=? CSview call s:openView('sp', <f-args>)
+command! -n=? Ccss call s:openFile('css', 'css', 'e', <f-args>)
+command! -n=? CVcss call s:openFile('css', 'css', 'vsp', <f-args>)
+command! -n=? CScss call s:openFile('css', 'css', 'sp', <f-args>)
+command! -n=? Cjs call s:openFile('css', 'js', 'e', <f-args>)
+command! -n=? CVjs call s:openFile('js', 'js', 'vsp', <f-args>)
+command! -n=? CSjs call s:openFile('js', 'js', 'sp', <f-args>)
+command! -n=? Clog call s:openFile('logs', 'log', 'sp', <f-args>)
+command! -n=? Cconfig call s:openFile('config', 'php', 'sp', <f-args>)
 command! -n=0 Cassoc echo s:associate()
 command! -n=? Cdoc call s:openDoc(<f-args>)
+command! -n=? Cfunc echo s:getFunctionName()
