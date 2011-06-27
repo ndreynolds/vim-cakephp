@@ -79,6 +79,9 @@ vertically split window, respectively (ex. :CVcontroller or :CSmodel). With thes
 'associated' refers to related MVC elements (e.g. 'post.php' & 'posts_controller.php').
 'Specified' refers to the command arguments which tell the plugin to get a specific file.
 
+Most commands now come with tab completion. After typing the command and a space, hit tab
+for available options.
+
                                                                       *cakephp:Ccontroller*
 :Ccontroller                Opens the associated controller as a buffer. 
 
@@ -196,6 +199,9 @@ CHANGE LOG
                open the CakePHP API in the default browser.
         Better app detection:
             -- Will find a CakePHP app when called from files other than the MVC.
+        Tab completion for most commands:
+            -- Custom command completion based on wildcard searches of the appropriate
+               directory.
         
 1.0     Initial release. Modest navigation functionality.        
 

@@ -137,7 +137,7 @@ function! s:associate()
         let app_root = ggrandparent_path
     else
         echo 'Could not find a CakePHP app. Call from inside a model, controller, view, or the webroot.' 
-        return {}
+        return {} 
     endif
     let associations = {}
     " Basic associations that don't require being called from an MVC element
@@ -258,23 +258,82 @@ function! s:getFunctionName()
     return split(split(getline('.'))[1], '(')[0]
 endfunction
 
-command! -n=? Ccontroller call s:openController('e', <f-args>)
-command! -n=? CVcontroller call s:openController('vsp', <f-args>)
-command! -n=? CScontroller call s:openController('sp', <f-args>)
-command! -n=? Cmodel call s:openModel('e', <f-args>)
-command! -n=? CVmodel call s:openModel('vsp', <f-args>)
-command! -n=? CSmodel call s:openModel('sp', <f-args>)
-command! -n=? Cview call s:openView('e', <f-args>)
-command! -n=? CVview call s:openView('vsp', <f-args>)
-command! -n=? CSview call s:openView('sp', <f-args>)
-command! -n=? Ccss call s:openFile('css', 'css', 'e', <f-args>)
-command! -n=? CVcss call s:openFile('css', 'css', 'vsp', <f-args>)
-command! -n=? CScss call s:openFile('css', 'css', 'sp', <f-args>)
-command! -n=? Cjs call s:openFile('css', 'js', 'e', <f-args>)
-command! -n=? CVjs call s:openFile('js', 'js', 'vsp', <f-args>)
-command! -n=? CSjs call s:openFile('js', 'js', 'sp', <f-args>)
-command! -n=? Clog call s:openFile('logs', 'log', 'sp', <f-args>)
+function! s:argMatch(opts, A)
+    " Filters command arguments for completion.
+    if strlen(a:A) > 0
+        return filter(a:opts, 'v:val[0:(strlen(a:A)-1)] == a:A') 
+    else
+        return a:opts
+    endif
+endfunction
+    
+function! s:ControllerComplete(A,L,P)
+    let associations = s:associate()
+    let controllers = map(split(glob(associations.controllers . '/*_controller.php'),'\n'), 'remove(split(v:val, s:DS),-1)')
+    return s:argMatch(map(controllers, 'remove(split(v:val,"_controller.php"),0)'), a:A)
+endfunction
+
+function! s:ModelComplete(A,L,P)
+    let associations = s:associate()
+    let models = map(split(glob(associations.models . '/*.php'),'\n'), 'remove(split(v:val, s:DS),-1)')
+    return s:argMatch(map(models, 'remove(split(v:val,".php"),0)'), a:A)
+endfunction
+
+function! s:ViewComplete(A,L,P)
+    " Handles both [view] and [controller]/[view] cases, although the latter
+    " isn't quite there yet.
+    let associations = s:associate()
+    let viewd = associations.viewd
+    if len(split(a:A,s:DS)) > 1
+        let dir = remove(split(a:A,s:DS),0)
+        let viewd = associations.views . s:DS . dir
+        let views = map(split(glob(viewd . '/*.ctp'),'\n'), 'dir . s:DS . remove(split(v:val, s:DS),-1)')
+        let opts = map(views, 'remove(split(v:val,".ctp"),0)')
+        if a:A[strlen(a:A)-1] == s:DS 
+            return opts
+        else
+            return s:argMatch(opts,a:JA)
+        endif
+    endif
+    let views = map(split(glob(viewd . '/*.ctp'),'\n'), 'remove(split(v:val, s:DS),-1)')
+    return s:argMatch(map(views, 'remove(split(v:val,".ctp"),0)'), a:A)
+endfunction
+
+function! s:CSSComplete(A,L,P)
+    let associations = s:associate()
+    let models = map(split(glob(associations.css . '/*.css'),'\n'), 'remove(split(v:val, s:DS),-1)')
+    return s:argMatch(map(models, 'remove(split(v:val,".css"),0)'), a:A)
+endfunction
+
+function! s:JSComplete(A,L,P)
+    let associations = s:associate()
+    let models = map(split(glob(associations.js . '/*.js'),'\n'), 'remove(split(v:val, s:DS),-1)')
+    return s:argMatch(map(models, 'remove(split(v:val,".js"),0)'), a:A)
+endfunction
+
+function! s:LogComplete(A,L,P)
+    let associations = s:associate()
+    let models = map(split(glob(associations.logs . '/*.log'),'\n'), 'remove(split(v:val, s:DS),-1)')
+    return s:argMatch(map(models, 'remove(split(v:val,".log"),0)'), a:A)
+endfunction
+    
+
+command! -n=? -complete=customlist,s:ControllerComplete Ccontroller call s:openController('e', <f-args>)
+command! -n=? -complete=customlist,s:ControllerComplete CVcontroller call s:openController('vsp', <f-args>)
+command! -n=? -complete=customlist,s:ControllerComplete CScontroller call s:openController('sp', <f-args>)
+command! -n=? -complete=customlist,s:ModelComplete Cmodel call s:openModel('e', <f-args>)
+command! -n=? -complete=customlist,s:ModelComplete CVmodel call s:openModel('vsp', <f-args>)
+command! -n=? -complete=customlist,s:ModelComplete CSmodel call s:openModel('sp', <f-args>)
+command! -n=? -complete=customlist,s:ViewComplete Cview call s:openView('e', <f-args>)
+command! -n=? -complete=customlist,s:ViewComplete CVview call s:openView('vsp', <f-args>)
+command! -n=? -complete=customlist,s:ViewComplete CSview call s:openView('sp', <f-args>)
+command! -n=? -complete=customlist,s:CSSComplete Ccss call s:openFile('css', 'css', 'e', <f-args>)
+command! -n=? -complete=customlist,s:CSSComplete CVcss call s:openFile('css', 'css', 'vsp', <f-args>)
+command! -n=? -complete=customlist,s:CSSComplete CScss call s:openFile('css', 'css', 'sp', <f-args>)
+command! -n=? -complete=customlist,s:JSComplete Cjs call s:openFile('css', 'js', 'e', <f-args>)
+command! -n=? -complete=customlist,s:JSComplete CVjs call s:openFile('js', 'js', 'vsp', <f-args>)
+command! -n=? -complete=customlist,s:JSComplete CSjs call s:openFile('js', 'js', 'sp', <f-args>)
+command! -n=? -complete=customlist,s:LogComplete Clog call s:openFile('logs', 'log', 'view', <f-args>)
 command! -n=? Cconfig call s:openFile('config', 'php', 'sp', <f-args>)
 command! -n=0 Cassoc echo s:associate()
 command! -n=? Cdoc call s:openDoc(<f-args>)
-command! -n=? Cfunc echo s:getFunctionName()
