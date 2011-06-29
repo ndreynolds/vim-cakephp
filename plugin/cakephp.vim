@@ -216,22 +216,26 @@ function! s:match_view(base_name)
     return s:pluralize(a:base_name)
 endfunction
 
-function! s:open_doc(...)
+function! s:open_doc(type,...)
     let url = 'http://api.cakephp.org/'
     if a:0 > 0
         let url .= 'search/' . join(split(a:1),'\%20')
     endif
-    if s:OS == 'mac'
-        exec 'silent ! open ' . url . ' &'
-        exec 'redraw!' 
-    elseif s:OS == 'windows'
-        exec 'silent ! start ' . url 
-        exec 'redraw!' 
-    elseif s:OS == 'unix' 
-        exec 'silent ! gnome-open ' . url . ' &'
-        exec 'redraw!'
+    if a:type == 'lynx'
+        exec '! lynx '. url
     else
-        call s:error_message('Not supported on your OS.')
+        if s:OS == 'mac'
+            exec 'silent ! open ' . url . ' &'
+            exec 'redraw!' 
+        elseif s:OS == 'windows'
+            exec 'silent ! start ' . url 
+            exec 'redraw!' 
+        elseif s:OS == 'unix' 
+            exec 'silent ! gnome-open ' . url . ' &'
+            exec 'redraw!'
+        else
+            call s:error_message('Not supported on your OS.')
+        endif
     endif
 endfunction
 
@@ -330,4 +334,5 @@ command! -n=? -complete=customlist,s:js_comp CSjs call s:open_file('js', 'js', '
 command! -n=? -complete=customlist,s:log_comp Clog call s:open_file('logs', 'log', 'view', <f-args>)
 command! -n=? -complete=customlist,s:config_comp Cconfig call s:open_file('config', 'php', 'e', <f-args>)
 command! -n=0 Cassoc echo s:associate()
-command! -n=? Cdoc call s:open_doc(<f-args>)
+command! -n=? Cdoc call s:open_doc('',<f-args>)
+command! -n=? CLdoc call s:open_doc('lynx',<f-args>)

@@ -177,6 +177,15 @@ VIEWING THE CAKE DOCS                                      *cakephp-documentatio
 
                                 EXAMPLE | :Cdoc Email Component   --Pulls up search results
 
+                                                                            *cakephp:CLdoc*
+:CLdoc [{query}]            Same as :Cdoc, but will use the Lynx browser. It doesn't check
+                            if you have Lynx (at least not yet), so you'll get an error if
+                            you don't have it installed. This command makes it possible to 
+                            browse the docs while working on a remote server. When you 
+                            close Lynx, you can press enter to resume your vim session.
+
+                                EXAMPLE | :CLdoc security         --Pulls up search results
+
 DEBUGGING
 -------------------------------------------------------------------------------------------
 
