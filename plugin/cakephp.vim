@@ -9,9 +9,11 @@ if exists("g:loaded_cakephp") || &cp
     finish
 endif
 
-let g:loaded_cakephp = '1.0'
+let g:loaded_cakephp = '1.2'
 let s:cpo_save = &cpo
 set cpo&vim
+
+let s:statusline_modified = 0
 
 let s:DS = '/'
 if has('unix') && strpart(system('uname'),0,6) == 'Darwin'
@@ -29,13 +31,12 @@ function! s:open_controller(method, ...)
     let associations = s:associate()
     if !empty(associations)
         if a:0 > 0
-            let controllers_root = fnamemodify(associations.controller,':h')
-            let path = controllers_root . s:DS . s:match_controller(s:base_name(a:1)) . '.php'
+            let path = associations.controllers . s:DS . s:match_controller(s:base_name(a:1)) . '.php'
             call s:open_window(path, a:method)
         elseif has_key(associations, 'controller')
             call s:open_window(associations.controller, a:method)
         else
-            call s:error_message('Not enough information. Call from a view or model, or specify a controller.')
+            call s:error_message("You'll need to specify a controller from here.")
         endif
     endif
 endfunction
@@ -44,13 +45,12 @@ function! s:open_model(method, ...)
     let associations = s:associate()
     if !empty(associations)
         if a:0 > 0
-            let models_root = fnamemodify(associations.model,':h')
-            let path = models_root . s:DS . s:base_name(a:1) . '.php'
+            let path = associations.models . s:DS . s:base_name(a:1) . '.php'
             call s:open_window(path, a:method)
         elseif has_key(associations, 'model')
             call s:open_window(associations.model, a:method)
         else
-            call s:error_message('Not enough information. Call from a view or controller, or specify a model.')
+            call s:error_message("You'll need to specify a model from here.")
         endif
     endif
 endfunction
@@ -69,7 +69,7 @@ function! s:open_view(method, ...)
                     let path = associations.viewd
                 endif
             else
-                call s:error_message('Not enough information. Use "controller/view" syntax here.')
+                call s:error_message("You'll need to use 'controller/view' syntax here.")
                 return
             endif
             call s:open_window(path, a:method)
@@ -106,7 +106,46 @@ function! s:open_window(path, method)
     exec a:method . ' ' . a:path
 endfunction
 
-function! s:associate()
+function! s:reset_statusline()
+    if s:statusline_modified
+        set statusline=
+        let s:statusline_modified = 0
+    endif
+endfunction
+
+function! s:startup()
+    let check = s:force_associate(1)
+    if !empty(check)
+        if filereadable(check.config . s:DS . 'bootstrap.php') && filereadable(check.config . s:DS . 'core.php') && filereadable(check.config . s:DS . 'routes.php')
+            set statusline=%f\ [CakePHP]\ %r%=\ %-20.(%l,%c-%v\ %)%P
+            let s:statusline_modified = 1
+            call s:set_commands()
+        endif
+    endif
+endfunction
+
+function! s:associate(...)
+    " Get associations lazily
+    if !exists('s:associations') 
+        if a:0 > 0
+            let s:associations = s:build_associations(a:1)
+        else
+            let s:associations = s:build_associations()
+        endif
+    endif
+    return s:associations
+endfunction
+
+function! s:force_associate(...)
+    if a:0 > 0
+        let s:associations = s:build_associations(a:1)
+    else
+        let s:associations = s:build_associations()
+    endif
+    return s:associations
+endfunction
+
+function! s:build_associations(...)
     let path = expand('%:p')
     let name = remove(split(expand('%:r'),s:DS),-1) " Get filename from rel or abs path
     let ext = expand('%:e')
@@ -121,25 +160,39 @@ function! s:associate()
     elseif parent == 'models'
         let base_name = s:base_name(name)
         let app_root = grandparent_path
+    elseif grandparent == 'views' && parent == 'layouts'
+        let base_name = 0
+        let app_root = ggrandparent_path
     elseif grandparent == 'views'
         let base_name = s:base_name(parent)
         let app_root = ggrandparent_path
     elseif grandparent == 'webroot'
         let base_name = 0
         let app_root = ggrandparent_path
+    elseif parent == 'config'
+        let base_name = 0
+        let app_root = grandparent_path
+    elseif parent == 'plugins'
+        let base_name = 0
+        let app_root = grandparent_path
     else
-        call s:error_message('Use within a CakePHP application.')
+        if !(a:0 > 0 && a:1 == 1)
+            call s:error_message('Use within a CakePHP application.')
+        endif
         return {} 
     endif
     let associations = {}
     " Basic associations that don't require being called from an MVC element
     let associations.name        = name
     let associations.app         = app_root
+    let associations.webroot     = app_root . s:DS . 'webroot' 
     let associations.css         = app_root . s:DS . 'webroot' . s:DS . 'css'
     let associations.js          = app_root . s:DS . 'webroot' . s:DS . 'js'
     let associations.controllers = app_root . s:DS . 'controllers'
     let associations.models      = app_root . s:DS . 'models'
     let associations.views       = app_root . s:DS . 'views'
+    let associations.layouts     = app_root . s:DS . 'views' . s:DS . 'layouts'
+    let associations.tmp         = app_root . s:DS . 'tmp'
     let associations.logs        = app_root . s:DS . 'tmp' . s:DS . 'logs'
     let associations.config      = app_root . s:DS . 'config'
     " Specific associations that require being called from an MVC element.
@@ -148,6 +201,7 @@ function! s:associate()
         let associations.model      = associations.models . s:DS . base_name . '.php'
         let associations.viewd      = associations.views . s:DS . s:match_view(base_name)
     endif
+        
     return associations
 endfunction
 
@@ -253,6 +307,24 @@ function! s:get_function_name()
     endtry
 endfunction
 
+function! s:grep_app_root(bang, pattern)
+    let associations = s:associate()
+    if !empty(associations) && s:OS != 'windows'
+        if a:bang
+            exec '! grep -r --color ' . a:pattern . ' ' . associations.app
+        else
+            let exclusions = '--exclude-dir="' . associations.tmp . '" '
+            let exclusions .= '--exclude-dir="' . associations.config . '" '
+            let exclusions .= '--exclude="' . associations.webroot . s:DS . 'test.php" '
+            exec '! grep -r  --color ' . exclusions . a:pattern . ' ' . associations.app
+        endif
+    elseif s:OS == 'windows'
+        s:error_message("Sorry this command isn't available on your OS")
+    else
+        s:error_message("CakePHP app not found")
+    endif
+endfunction
+
 function! s:arg_match(opts, A)
     if strlen(a:A) > 0
         return filter(a:opts, 'v:val[0:(strlen(a:A)-1)] == a:A') 
@@ -261,12 +333,12 @@ function! s:arg_match(opts, A)
     endif
 endfunction
 
-function! s:glob_directory(direc, match)
+function! s:glob_directory(direc, pattern)
     let associations = s:associate()
     if has_key(associations,a:direc)
-        let files = split(glob(associations[a:direc] . '/*' . a:match),'\n')
+        let files = split(glob(associations[a:direc] . '/*' . a:pattern),'\n')
         let files = map(files, 'remove(split(v:val, s:DS),-1)')
-        let files = map(files, 'remove(split(v:val, a:match),0)')
+        let files = map(files, 'remove(split(v:val, a:pattern),0)')
         return files
     endif
     return []
@@ -312,27 +384,42 @@ function! s:config_comp(A,L,P)
     return s:arg_match(s:glob_directory('config', '.php'), a:A)
 endfunction
 
+function! s:layout_comp(A,L,P)
+    return s:arg_match(s:glob_directory('layouts', '.ctp'), a:A)
+endfunction
+
 function! s:error_message(msg)
     echo '[cakephp.vim] ' . a:msg
 endfunction
 
-command! -n=? -complete=customlist,s:controller_comp Ccontroller call s:open_controller('e', <f-args>)
-command! -n=? -complete=customlist,s:controller_comp CVcontroller call s:open_controller('vsp', <f-args>)
-command! -n=? -complete=customlist,s:controller_comp CScontroller call s:open_controller('sp', <f-args>)
-command! -n=? -complete=customlist,s:model_comp Cmodel call s:open_model('e', <f-args>)
-command! -n=? -complete=customlist,s:model_comp CVmodel call s:open_model('vsp', <f-args>)
-command! -n=? -complete=customlist,s:model_comp CSmodel call s:open_model('sp', <f-args>)
-command! -n=? -complete=customlist,s:view_comp Cview call s:open_view('e', <f-args>)
-command! -n=? -complete=customlist,s:view_comp CVview call s:open_view('vsp', <f-args>)
-command! -n=? -complete=customlist,s:view_comp CSview call s:open_view('sp', <f-args>)
-command! -n=? -complete=customlist,s:css_comp Ccss call s:open_file('css', 'css', 'e', <f-args>)
-command! -n=? -complete=customlist,s:css_comp CVcss call s:open_file('css', 'css', 'vsp', <f-args>)
-command! -n=? -complete=customlist,s:css_comp CScss call s:open_file('css', 'css', 'sp', <f-args>)
-command! -n=? -complete=customlist,s:js_comp Cjs call s:open_file('css', 'js', 'e', <f-args>)
-command! -n=? -complete=customlist,s:js_comp CVjs call s:open_file('js', 'js', 'vsp', <f-args>)
-command! -n=? -complete=customlist,s:js_comp CSjs call s:open_file('js', 'js', 'sp', <f-args>)
-command! -n=? -complete=customlist,s:log_comp Clog call s:open_file('logs', 'log', 'view', <f-args>)
-command! -n=? -complete=customlist,s:config_comp Cconfig call s:open_file('config', 'php', 'e', <f-args>)
-command! -n=0 Cassoc echo s:associate()
-command! -n=? Cdoc call s:open_doc('',<f-args>)
-command! -n=? CLdoc call s:open_doc('lynx',<f-args>)
+function! s:set_commands()
+    command! -n=? -complete=customlist,s:controller_comp Ccontroller call s:open_controller('e', <f-args>)
+    command! -n=? -complete=customlist,s:controller_comp CVcontroller call s:open_controller('vsp', <f-args>)
+    command! -n=? -complete=customlist,s:controller_comp CScontroller call s:open_controller('sp', <f-args>)
+    command! -n=? -complete=customlist,s:model_comp Cmodel call s:open_model('e', <f-args>)
+    command! -n=? -complete=customlist,s:model_comp CVmodel call s:open_model('vsp', <f-args>)
+    command! -n=? -complete=customlist,s:model_comp CSmodel call s:open_model('sp', <f-args>)
+    command! -n=? -complete=customlist,s:view_comp Cview call s:open_view('e', <f-args>)
+    command! -n=? -complete=customlist,s:view_comp CVview call s:open_view('vsp', <f-args>)
+    command! -n=? -complete=customlist,s:view_comp CSview call s:open_view('sp', <f-args>)
+    command! -n=? -complete=customlist,s:css_comp Ccss call s:open_file('css', 'css', 'e', <f-args>)
+    command! -n=? -complete=customlist,s:css_comp CVcss call s:open_file('css', 'css', 'vsp', <f-args>)
+    command! -n=? -complete=customlist,s:css_comp CScss call s:open_file('css', 'css', 'sp', <f-args>)
+    command! -n=? -complete=customlist,s:js_comp Cjs call s:open_file('js', 'js', 'e', <f-args>)
+    command! -n=? -complete=customlist,s:js_comp CVjs call s:open_file('js', 'js', 'vsp', <f-args>)
+    command! -n=? -complete=customlist,s:js_comp CSjs call s:open_file('js', 'js', 'sp', <f-args>)
+    command! -n=? -complete=customlist,s:layout_comp Clayout call s:open_file('layouts', 'ctp', 'e', <f-args>)
+    command! -n=? -complete=customlist,s:layout_comp CVlayout call s:open_file('layouts', 'ctp', 'vsp', <f-args>)
+    command! -n=? -complete=customlist,s:layout_comp CSlayout call s:open_file('layouts', 'ctp', 'sp', <f-args>)
+    command! -n=? -complete=customlist,s:log_comp Clog call s:open_file('logs', 'log', 'view', <f-args>)
+    command! -n=? -complete=customlist,s:config_comp Cconfig call s:open_file('config', 'php', 'e', <f-args>)
+    command! -n=0 Cassoc echo s:associate()
+    command! -n=? Cdoc call s:open_doc('', <f-args>)
+    command! -n=? CLdoc call s:open_doc('lynx', <f-args>)
+    command! -n=1 -bang Cgrep call s:grep_app_root(<bang>0, <f-args>)
+endfunction
+
+call s:startup()
+
+autocmd BufEnter * :call s:reset_statusline()
+autocmd BufEnter *.ctp,*.php,*.js,*.css,*.log :call s:startup()
