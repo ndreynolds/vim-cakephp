@@ -10,13 +10,17 @@ This documentation covers version 1.2.
 INTRODUCTION                                                         *cakephp-introduction*
 ===========================================================================================
 
-This plugin aims to bring many of the features from vim-rails to CakePHP users. While 
-there's already one or two out there, I wanted to make one that was more intuitive. 
+This plugin aims to bring many of the features from rails.vim to CakePHP users. Since I use
+Rails and rails.vim myself (when I'm not using Cake), I've tried to make the commands
+similar, so it's not confusing to switch between the two. At the same time, CakePHP is not 
+an exact copy of Rails, and PHP is not Ruby, so some things need to be different.
+
 Because the CakePHP environment is so well organized, we can make a lot of inferences about
 the whole application from a single file. If you call one of its functions from a model,
-cakephp.vim already knows where the controller and views are. The goal is to help you
-quickly bounce back and forth between the MVC structure without needing a file browser or
-explicit paths.
+cakephp.vim already knows where the controller and views are. The goal is to help you 
+quickly bounce back and forth between the MVC structure without needing a file browser or 
+explicit paths. While quick navigation is the priority, I'm also trying to include other
+little utilities that just make using Cake easier.
 
 INSTALLATION                                                         *cakephp-installation* 
 ===========================================================================================
@@ -41,12 +45,13 @@ plugin/cakephp.vim in $VIMRUNTIME/plugin.
 WHAT IT DOES                                                         *cakephp-what-it-does*
 ===========================================================================================
 
-cakephp.vim checks each buffer you load to see if it looks like a CakePHP application file.
-The check is very quick and won't have any noticeable effect on performance.  To 
-distinguish a CakePHP application from, say, a Ruby on Rails app (which has a similar
-structure), the plugin checks the config directory for 'bootstrap.php', 'routes.php', and
-'core.php'. If your Cake app isn't being recognized, make sure these are present. This 
-check is needed to make sure cakephp.vim stays out of the way of other plugins. 
+cakephp.vim checks each buffer you load (that matches a set of extensions) to see if it 
+looks like a CakePHP application file. The check is very quick and won't have any 
+noticeable effect on performance.  To distinguish a CakePHP application from, say, a Ruby 
+on Rails app (which has a similar structure), the plugin checks the config directory for 
+'bootstrap.php', 'routes.php', and 'core.php'. If your Cake app isn't being recognized, 
+make sure these are present. This check is needed to make sure cakephp.vim stays out of 
+the way of other plugins. 
 
 When it thinks you're editing a CakePHP application file, an indicator is added to your
 status line. The plugin's commands are available when this indicator is present.
@@ -93,13 +98,14 @@ For example, running >
 from 'posts_controller.php' would create the file 'test.ctp' within the views/posts/
 directory--so long as it's not already there.
 
-The |:Cgrep| command may be useful when you need to track down a given string (maybe a 
-method call or variable name). The command greps the application root recursively, omitting 
-the tmp and config directories by default to clean up the results. You can include them by 
-running the command with a bang.
+The |:Cgrep| command may be useful when you need to track down a given string or pattern 
+(maybe a method call or variable name). The command greps the application root recursively, 
+omitting the tmp and config directories by default to clean up the results. You can include 
+them by running the command with a bang.
 
-If you end up using the plugin a lot, you might want to remap some of the longer commands.
-For instance, you could remap |:Ccontroller| to something like :Cc from your .vimrc.
+If you end up using the plugin a lot, you might consider remapping some of the longer 
+commands. For instance, you could remap |:Ccontroller| to something like :Cc from your 
+.vimrc.
 
 
 COMMANDS                                                                 *cakephp-commands*
@@ -217,11 +223,12 @@ UTILITY                                                          *cakephp-utilit
 -------------------------------------------------------------------------------------------
 
                                                                             *cakephp:Cgrep*
-:Cgrep [{pattern}]          Recursively greps the application directory. Only available on
-                            *nixes. Will force color and exclude the tmp and config
-                            directories by default. There's a lot of framework stuff in
-                            both directories that clutters the results. You can run the
-                            command with a bang (:Cgrep!) to show the unfiltered results.
+:Cgrep [{pattern}]          Recursively greps the application directory. Windows users will
+                            need to have grep installed to use this command. Will force 
+                            color and exclude the tmp and config directories by default. 
+                            There's a lot of framework stuff in both directories that 
+                            clutters the results. You can run the command with a bang 
+                            (:Cgrep!) to show the unfiltered results.
 
 
 DOCUMENTATION                                              *cakephp-documentation-commands*
@@ -247,7 +254,7 @@ DOCUMENTATION                                              *cakephp-documentatio
                             When you close Lynx, you can press enter to resume your vim 
                             session. >
 
-                                :CLdoc security          --Pulls up search results
+                                :CLdoc security          --Pulls up search results in Lynx
 
 DEBUGGING
 -------------------------------------------------------------------------------------------
