@@ -31,7 +31,11 @@ function! s:open_controller(method, ...)
     let associations = s:associate()
     if !empty(associations)
         if a:0 > 0
-            let path = associations.controllers . s:DS . s:match_controller(s:base_name(a:1)) . '.php'
+            if a:1 == 'app'
+                let path = associations.app . s:DS . 'app_controller.php'
+            else
+                let path = associations.controllers . s:DS . s:match_controller(s:base_name(a:1)) . '.php'
+            endif
             call s:open_window(path, a:method)
         elseif has_key(associations, 'controller')
             call s:open_window(associations.controller, a:method)
@@ -45,7 +49,11 @@ function! s:open_model(method, ...)
     let associations = s:associate()
     if !empty(associations)
         if a:0 > 0
-            let path = associations.models . s:DS . s:base_name(a:1) . '.php'
+            if a:1 == 'app'
+                let path = associations.app . s:DS . 'app_model.php'
+            else
+                let path = associations.models . s:DS . s:base_name(a:1) . '.php'
+            endif
             call s:open_window(path, a:method)
         elseif has_key(associations, 'model')
             call s:open_window(associations.model, a:method)
@@ -189,15 +197,18 @@ function! s:build_associations(...)
     let associations.name        = name
     let associations.app         = app_root
     let associations.webroot     = app_root . s:DS . 'webroot' 
-    let associations.css         = app_root . s:DS . 'webroot' . s:DS . 'css'
-    let associations.js          = app_root . s:DS . 'webroot' . s:DS . 'js'
     let associations.controllers = app_root . s:DS . 'controllers'
     let associations.models      = app_root . s:DS . 'models'
     let associations.views       = app_root . s:DS . 'views'
-    let associations.layouts     = app_root . s:DS . 'views' . s:DS . 'layouts'
     let associations.tmp         = app_root . s:DS . 'tmp'
-    let associations.logs        = app_root . s:DS . 'tmp' . s:DS . 'logs'
     let associations.config      = app_root . s:DS . 'config'
+    let associations.css         = associations.webroot . s:DS . 'css'
+    let associations.js          = associations.webroot . s:DS . 'js'
+    let associations.logs        = associations.tmp . s:DS . 'logs'
+    let associations.layouts     = associations.views . s:DS . 'layouts'
+    let associations.helpers     = associations.views . s:DS . 'helpers'
+    let associations.behaviors   = associations.models . s:DS . 'behaviors'
+    let associations.components  = associations.controllers . s:DS . 'components'
     " Specific associations that require being called from an MVC element.
     if !empty(base_name)
         let associations.controller = associations.controllers . s:DS . s:match_controller(base_name) . '.php'
@@ -352,11 +363,11 @@ function! s:glob_directory(direc, pattern)
 endfunction
     
 function! s:controller_comp(A,L,P)
-    return s:arg_match(s:glob_directory('controllers', '_controller.php'), a:A)
+    return s:arg_match(add(s:glob_directory('controllers', '_controller.php'), 'app'), a:A)
 endfunction
 
 function! s:model_comp(A,L,P)
-    return s:arg_match(s:glob_directory('models', '.php'), a:A)
+    return s:arg_match(add(s:glob_directory('models', '.php'), 'app'), a:A)
 endfunction
 
 function! s:view_comp(A,L,P)
@@ -395,6 +406,18 @@ function! s:layout_comp(A,L,P)
     return s:arg_match(s:glob_directory('layouts', '.ctp'), a:A)
 endfunction
 
+function! s:behavior_comp(A,L,P)
+    return s:arg_match(s:glob_directory('behaviors', '.php'), a:A)
+endfunction
+
+function! s:helper_comp(A,L,P)
+    return s:arg_match(s:glob_directory('helpers', '.php'), a:A)
+endfunction
+
+function! s:component_comp(A,L,P)
+    return s:arg_match(s:glob_directory('components', '.php'), a:A)
+endfunction
+
 function! s:error_message(msg)
     echo '[cakephp.vim] ' . a:msg
 endfunction
@@ -418,6 +441,15 @@ function! s:set_commands()
     command! -n=? -complete=customlist,s:layout_comp Clayout call s:open_file('layouts', 'ctp', 'e', <f-args>)
     command! -n=? -complete=customlist,s:layout_comp CVlayout call s:open_file('layouts', 'ctp', 'vsp', <f-args>)
     command! -n=? -complete=customlist,s:layout_comp CSlayout call s:open_file('layouts', 'ctp', 'sp', <f-args>)
+    command! -n=? -complete=customlist,s:behavior_comp Cbehavior call s:open_file('behaviors', 'php', 'e', <f-args>)
+    command! -n=? -complete=customlist,s:behavior_comp CVbehavior call s:open_file('behaviors', 'php', 'vsp', <f-args>)
+    command! -n=? -complete=customlist,s:behavior_comp CSbehavior call s:open_file('behaviors', 'php', 'sp', <f-args>)
+    command! -n=? -complete=customlist,s:helper_comp Chelper call s:open_file('helpers', 'php', 'e', <f-args>)
+    command! -n=? -complete=customlist,s:helper_comp CVhelper call s:open_file('helpers', 'php', 'vsp', <f-args>)
+    command! -n=? -complete=customlist,s:helper_comp CShelper call s:open_file('helpers', 'php', 'sp', <f-args>)
+    command! -n=? -complete=customlist,s:component_comp Ccomponent call s:open_file('components', 'php', 'e', <f-args>)
+    command! -n=? -complete=customlist,s:component_comp CVcomponent call s:open_file('components', 'php', 'vsp', <f-args>)
+    command! -n=? -complete=customlist,s:component_comp CScomponent call s:open_file('components', 'php', 'sp', <f-args>)
     command! -n=? -complete=customlist,s:log_comp Clog call s:open_file('logs', 'log', 'view', <f-args>)
     command! -n=? -complete=customlist,s:config_comp Cconfig call s:open_file('config', 'php', 'e', <f-args>)
     command! -n=0 Cassoc echo s:associate()
