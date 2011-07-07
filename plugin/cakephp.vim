@@ -117,7 +117,7 @@ function! s:startup()
     let check = s:force_associate(1)
     if !empty(check)
         if filereadable(check.config . s:DS . 'bootstrap.php') && filereadable(check.config . s:DS . 'core.php') && filereadable(check.config . s:DS . 'routes.php')
-            set statusline=%f\ [CakePHP]\ %r%=\ %-20.(%l,%c-%v\ %)%P
+            set statusline=%f\ %y\ [CakePHP]\ %r%=\ %-20.(%l,%c-%v\ %)%P
             let s:statusline_modified = 1
             call s:set_commands()
         endif
@@ -207,8 +207,12 @@ endfunction
 
 function! s:base_name(name)
     let name = a:name
-    if len(split(name,'_')) > 1 " Check if it is a controller
-        return s:singularize(split(name,'_')[0])
+    if name =~ '_controller' 
+        let splits = split(name, '_')
+        if len(splits) > 2 
+            return join(splits[0:-3], '_') . '_' . s:singularize(splits[-2])
+        endif 
+        return s:singularize(splits[0])
     elseif s:is_plural(name)
         return s:singularize(name)
     else
