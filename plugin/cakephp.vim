@@ -1,6 +1,6 @@
 " cakephp.vim
 " A vim plugin for navigating and managing CakePHP projects
-" Version: 1.0
+" Version: 1.2
 " Author: Nick Reynolds
 " Repository: http://github.com/ndreynolds/vim-cakephp
 " License: Public Domain
@@ -175,6 +175,9 @@ function! s:build_associations(...)
     elseif parent == 'plugins'
         let base_name = 0
         let app_root = grandparent_path
+    elseif grandparent == 'tmp'
+        let base_name = 0
+        let app_root = ggrandparent_path
     else
         if !(a:0 > 0 && a:1 == 1)
             call s:error_message('Use within a CakePHP application.')
