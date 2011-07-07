@@ -168,22 +168,16 @@ function! s:build_associations(...)
     elseif parent == 'models'
         let base_name = s:base_name(name)
         let app_root = grandparent_path
-    elseif grandparent == 'views' && parent == 'layouts'
+    elseif grandparent == 'views' && s:in_list(['layouts', 'helpers'], parent) 
         let base_name = 0
         let app_root = ggrandparent_path
     elseif grandparent == 'views'
         let base_name = s:base_name(parent)
         let app_root = ggrandparent_path
-    elseif grandparent == 'webroot'
-        let base_name = 0
-        let app_root = ggrandparent_path
-    elseif parent == 'config'
+    elseif s:in_list(['webroot', 'config', 'plugins'], parent)
         let base_name = 0
         let app_root = grandparent_path
-    elseif parent == 'plugins'
-        let base_name = 0
-        let app_root = grandparent_path
-    elseif grandparent == 'tmp'
+    elseif s:in_list(['webroot', 'controllers', 'models', 'tmp'], grandparent) 
         let base_name = 0
         let app_root = ggrandparent_path
     else
@@ -215,7 +209,6 @@ function! s:build_associations(...)
         let associations.model      = associations.models . s:DS . base_name . '.php'
         let associations.viewd      = associations.views . s:DS . s:match_view(base_name)
     endif
-        
     return associations
 endfunction
 
@@ -232,6 +225,12 @@ function! s:base_name(name)
     else
         return name
     endif
+endfunction
+
+function! s:in_list(list, el)
+    " Checks if the given element is a member of the given list
+    let list = filter(a:list, 'v:val == a:el')
+    return len(list) > 0 ? 1 : 0
 endfunction
 
 function! s:sub(str,pat,rep)
