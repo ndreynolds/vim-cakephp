@@ -207,6 +207,25 @@ available options.
                                 :Clayout default        --Opens layouts/default.ctp
 
 
+                                                                          *cakephp:Chelper*
+:Chelper                    Open a file browser buffer in views/helpers.
+
+:Chelper [{name}]           Open the specified helper from within views/helpers.
+
+
+                                                                       *cakephp:Ccomponent*
+:Ccomponent                 Open a file browser buffer in controllers/components.
+
+:Ccomponent[{name}]         Open the specified component from within 
+                            controllers/components.
+
+
+                                                                        *cakephp:Cbehavior*
+:Cbehavior                  Open a file browser buffer in models/behaviors.
+
+:Clog [{name}]              Open the specified behavior from within models/behaviors.
+
+
                                                                              *cakephp:Clog*
 :Clog                       Open a file browser buffer in tmp/logs.
 
@@ -266,6 +285,11 @@ DEBUGGING
 
 CHANGE LOG
 ===========================================================================================
+
+1.2.5   Adds :Chelper, :Ccomponent, :Cbehavior.
+        Updated documentation.
+        Minor statusline changes.
+        Fewer bugs.
 
 1.2     Adds [CakePHP] indicator to statusline and conditionally sets commands.
         Adds the :Clayout, :Cgrep, and :CLdoc commands.
