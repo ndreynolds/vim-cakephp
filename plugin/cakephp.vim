@@ -16,7 +16,7 @@ set cpo&vim
 let s:statusline_modified = 0
 
 let s:DS = '/'
-if has('unix') && strpart(system('uname'),0,6) == 'Darwin'
+if has('unix') && system('uname') =~ 'Darwin'
     let s:OS = 'mac'
 elseif has('unix')
     let s:OS = 'unix'
@@ -155,7 +155,11 @@ endfunction
 
 function! s:build_associations(...)
     let path = expand('%:p')
-    let name = remove(split(expand('%:r'),s:DS),-1) " Get filename from rel or abs path
+    try
+        let name = split(expand('%:r'), s:DS)[-1] " Get filename from rel or abs path
+    catch
+        return {}
+    endtry
     let ext = expand('%:e')
     let parent = expand('%:p:h:t')
     let parent_path = expand('%:p:h')
