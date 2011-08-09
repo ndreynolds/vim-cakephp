@@ -166,6 +166,7 @@ function! s:build_associations(...)
     let grandparent = expand('%:p:h:h:t')
     let grandparent_path = expand('%:p:h:h')
     let ggrandparent_path = expand('%:p:h:h:h')
+    let base_name = 0
     if parent == 'controllers'
         let base_name = s:base_name(name)
         let app_root = grandparent_path
@@ -173,17 +174,16 @@ function! s:build_associations(...)
         let base_name = s:base_name(name)
         let app_root = grandparent_path
     elseif grandparent == 'views' && s:in_list(['layouts', 'helpers'], parent) 
-        let base_name = 0
         let app_root = ggrandparent_path
     elseif grandparent == 'views'
         let base_name = s:base_name(parent)
         let app_root = ggrandparent_path
     elseif s:in_list(['webroot', 'config', 'plugins'], parent)
-        let base_name = 0
         let app_root = grandparent_path
     elseif s:in_list(['webroot', 'controllers', 'models', 'tmp'], grandparent) 
-        let base_name = 0
         let app_root = ggrandparent_path
+    elseif s:in_list(['app_controller', 'app_model', 'app_helper'], name)
+        let app_root = parent_path
     else
         if !(a:0 > 0 && a:1 == 1)
             call s:error_message('Use within a CakePHP application.')
