@@ -357,14 +357,14 @@ endfunction
 function! s:glob_directory(direc, pattern)
     let associations = s:associate()
     if has_key(associations,a:direc)
-        let files = split(glob(associations[a:direc] . '/*' . a:pattern),'\n')
+        let files = split(glob(associations[a:direc] . s:DS . '*' . a:pattern),'\n')
         let files = map(files, 'remove(split(v:val, s:DS),-1)')
         let files = map(files, 'remove(split(v:val, a:pattern),0)')
         return files
     endif
     return []
 endfunction
-    
+
 function! s:controller_comp(A,L,P)
     return s:arg_match(add(s:glob_directory('controllers', '_controller.php'), 'app'), a:A)
 endfunction
@@ -375,10 +375,10 @@ endfunction
 
 function! s:view_comp(A,L,P)
     let associations = s:associate()
-    if (len(split(a:A,s:DS)) > 1 || a:A[strlen(a:A)-1] == s:DS) && has_key(associations, 'viewd')
+    if (len(split(a:A,s:DS)) > 1 || a:A[strlen(a:A)-1] == s:DS)
         let dir = remove(split(a:A,s:DS),0)
         let viewd = associations.views . s:DS . dir
-        let views = map(split(glob(viewd . '/*.ctp'),'\n'), 'dir . s:DS . remove(split(v:val, s:DS),-1)')
+        let views = map(split(glob(viewd . s:DS . '*.ctp'),'\n'), 'dir . s:DS . remove(split(v:val, s:DS),-1)')
         let opts = map(views, 'remove(split(v:val,".ctp"),0)')
         if a:A[strlen(a:A)-1] == s:DS 
             return opts
