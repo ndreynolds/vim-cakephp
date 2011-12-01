@@ -32,7 +32,7 @@ function! s:open_controller(method, ...)
     if !empty(associations)
         if a:0 > 0
             if a:1 == 'app'
-                let path = associations.app . s:DS . 'app_controller.php'
+                let path = associations.app . s:DS . 'AppController.php'
             else
                 let path = associations.controllers . s:DS . s:match_controller(s:base_name(a:1)) . '.php'
             endif
@@ -50,7 +50,7 @@ function! s:open_model(method, ...)
     if !empty(associations)
         if a:0 > 0
             if a:1 == 'app'
-                let path = associations.app . s:DS . 'app_model.php'
+                let path = associations.app . s:DS . 'AppModel.php'
             else
                 let path = associations.models . s:DS . s:base_name(a:1) . '.php'
             endif
@@ -195,18 +195,18 @@ function! s:build_associations(...)
     let associations.name        = name
     let associations.app         = app_root
     let associations.webroot     = app_root . s:DS . 'webroot' 
-    let associations.controllers = app_root . s:DS . 'controllers'
-    let associations.models      = app_root . s:DS . 'models'
-    let associations.views       = app_root . s:DS . 'views'
+    let associations.controllers = app_root . s:DS . 'Controller'
+    let associations.models      = app_root . s:DS . 'Model'
+    let associations.views       = app_root . s:DS . 'View'
     let associations.tmp         = app_root . s:DS . 'tmp'
-    let associations.config      = app_root . s:DS . 'config'
+    let associations.config      = app_root . s:DS . 'Config'
     let associations.css         = associations.webroot . s:DS . 'css'
     let associations.js          = associations.webroot . s:DS . 'js'
     let associations.logs        = associations.tmp . s:DS . 'logs'
-    let associations.layouts     = associations.views . s:DS . 'layouts'
-    let associations.helpers     = associations.views . s:DS . 'helpers'
-    let associations.behaviors   = associations.models . s:DS . 'behaviors'
-    let associations.components  = associations.controllers . s:DS . 'components'
+    let associations.layouts     = associations.views . s:DS . 'Layouts'
+    let associations.helpers     = associations.views . s:DS . 'Helper'
+    let associations.behaviors   = associations.models . s:DS . 'Behavior'
+    let associations.components  = associations.controllers . s:DS . 'Component'
     " Specific associations that require being called from an MVC element.
     if !empty(base_name)
         let associations.controller = associations.controllers . s:DS . s:match_controller(base_name) . '.php'
