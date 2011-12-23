@@ -378,7 +378,7 @@ endfunction
 
 " Custom completion functions ---------------------------------------------- {{{
 function! s:controller_comp(A,L,P)
-    return s:arg_match(add(s:glob_directory('controllers', 'Controller.php'), 'App'), a:A)
+    return s:arg_match(s:glob_directory('controllers', 'Controller.php'), a:A)
 endfunction
 
 function! s:model_comp(A,L,P)
