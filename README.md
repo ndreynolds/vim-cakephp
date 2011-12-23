@@ -1,12 +1,17 @@
 cakephp.vim
-==================================================================================
+================================================================================
 A vim plugin for navigating and managing CakePHP applications. The goal is to 
-mimic the functionality of rails.vim in the Cake environment. It's not quite there
-yet, but I'm slowly adding things that (I think) make using Cake easier and faster.
+mimic the functionality of rails.vim in the Cake environment. It's not quite 
+there yet, but I'm slowly adding things that (I think) make using Cake easier 
+and faster.
+
+*Note about CakePHP 2.0:*
+The naming conventions changed quite a bit from version 1.3 to 2.0. I'm working
+on adding support for both to the plugin, but for now you can get by with the
+`2.0-support` branch. Just check it out with `git checkout 2.0-support`.
 
 Installation
-----------------------------------------------------------------------------------
-
+--------------------------------------------------------------------------------
 Using vim-pathogen and Git submodules:
 
     $ git submodule add git://github.com/ndreynolds/vim-cakephp.git bundle/cakephp
@@ -18,9 +23,8 @@ and put it wherever you put the others.
 
 That's it.
 
-Getting Started (see [doc/cakephp.vim](https://github.com/ndreynolds/vim-cakephp/blob/master/doc/cakephp.txt) for full documentation)
-----------------------------------------------------------------------------------
-
+Getting Started (see [doc/cakephp.vim][1] for the full documentation)
+--------------------------------------------------------------------------------
 Start working on your Cake application as you normally would. No need to set any
 variables, cakephp.vim will do all the work. 
 
@@ -57,10 +61,12 @@ Search the CakePHP API docs:
 
 Most commands have tab completion, so you'll only need a few keystrokes to jump 
 to any given file. Commands that open files all have variants for vertical and 
-horizontal split modes. There are a lot more commands so you owe it to yourself to
-check out the docs if you use this plugin.
+horizontal split modes. There are a lot more commands so you owe it to yourself 
+to check out the docs if you use this plugin.
 
-See [doc/cakephp.vim](https://github.com/ndreynolds/vim-cakephp/blob/master/doc/cakephp.txt) for the full documentation.
+See [doc/cakephp.vim][1] for the full documentation.
 
-If you have vim configured to automatically load plugin help files, you can call 
+If you have vim configured to automatically load plugin help files, you can call
 this documentation with `:help cakephp` from within vim.
+
+[1]: https://github.com/ndreynolds/vim-cakephp/blob/master/doc/cakephp.txt
