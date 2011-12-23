@@ -5,6 +5,7 @@
 " Repository: http://github.com/ndreynolds/vim-cakephp
 " License: Public Domain
 
+" Script setup ------------------------------------------------------------- {{{
 if exists("g:loaded_cakephp") || &cp
     finish
 endif
@@ -14,7 +15,9 @@ let s:cpo_save = &cpo
 set cpo&vim
 
 let s:statusline_modified = 0
+" }}}
 
+" Detect OS ---------------------------------------------------------------- {{{
 let s:DS = '/'
 if has('unix') && system('uname') =~ 'Darwin'
     let s:OS = 'mac'
@@ -26,13 +29,15 @@ elseif has('win32')
 else
     let s:OS = 'unknown'
 endif
+" }}}
 
+" Openers ------------------------------------------------------------------ {{{
 function! s:open_controller(method, ...)
     let associations = s:associate()
     if !empty(associations)
         if a:0 > 0
-            if a:1 == 'app'
-                let path = associations.app . s:DS . 'AppController.php'
+            if a:1 == 'App'
+                let path = associations.controllers . s:DS . 'AppController.php'
             else
                 let path = associations.controllers . s:DS . s:match_controller(s:base_name(a:1)) . '.php'
             endif
@@ -49,11 +54,12 @@ function! s:open_model(method, ...)
     let associations = s:associate()
     if !empty(associations)
         if a:0 > 0
-            if a:1 == 'app'
-                let path = associations.app . s:DS . 'AppModel.php'
+            if a:1 == 'App'
+                let path = associations.models . s:DS . 'AppModel.php'
             else
                 let path = associations.models . s:DS . s:base_name(a:1) . '.php'
             endif
+            let path = associations.models . s:DS . s:base_name(a:1) . '.php'
             call s:open_window(path, a:method)
         elseif has_key(associations, 'model')
             call s:open_window(associations.model, a:method)
@@ -113,6 +119,7 @@ endfunction
 function! s:open_window(path, method)
     exec a:method . ' ' . a:path
 endfunction
+" }}}
 
 function! s:reset_statusline()
     if s:statusline_modified
@@ -132,6 +139,7 @@ function! s:startup()
     endif
 endfunction
 
+" Associate callers -------------------------------------------------------- {{{
 function! s:associate(...)
     " Get associations lazily
     if !exists('s:associations') 
@@ -152,7 +160,9 @@ function! s:force_associate(...)
     endif
     return s:associations
 endfunction
+" }}}
 
+" Association builder ------------------------------------------------------ {{{
 function! s:build_associations(...)
     let path = expand('%:p')
     try
@@ -167,23 +177,21 @@ function! s:build_associations(...)
     let grandparent_path = expand('%:p:h:h')
     let ggrandparent_path = expand('%:p:h:h:h')
     let base_name = 0
-    if parent == 'controllers'
+    if parent == 'Controller'
         let base_name = s:base_name(name)
         let app_root = grandparent_path
-    elseif parent == 'models'
+    elseif parent == 'Model'
         let base_name = s:base_name(name)
         let app_root = grandparent_path
-    elseif grandparent == 'views' && s:in_list(['layouts', 'helpers'], parent) 
+    elseif grandparent == 'View' && parent == 'Layouts' 
         let app_root = ggrandparent_path
-    elseif grandparent == 'views'
+    elseif grandparent == 'View'
         let base_name = s:base_name(parent)
         let app_root = ggrandparent_path
-    elseif s:in_list(['webroot', 'config', 'plugins'], parent)
+    elseif s:in_list(['webroot', 'Config', 'Plugin'], parent)
         let app_root = grandparent_path
-    elseif s:in_list(['webroot', 'controllers', 'models', 'tmp'], grandparent) 
+    elseif s:in_list(['webroot', 'Controller', 'Model', 'tmp'], grandparent) 
         let app_root = ggrandparent_path
-    elseif s:in_list(['app_controller', 'app_model', 'app_helper'], name)
-        let app_root = parent_path
     else
         if !(a:0 > 0 && a:1 == 1)
             call s:error_message('Use within a CakePHP application.')
@@ -204,7 +212,6 @@ function! s:build_associations(...)
     let associations.js          = associations.webroot . s:DS . 'js'
     let associations.logs        = associations.tmp . s:DS . 'logs'
     let associations.layouts     = associations.views . s:DS . 'Layouts'
-    let associations.helpers     = associations.views . s:DS . 'Helper'
     let associations.behaviors   = associations.models . s:DS . 'Behavior'
     let associations.components  = associations.controllers . s:DS . 'Component'
     " Specific associations that require being called from an MVC element.
@@ -215,14 +222,12 @@ function! s:build_associations(...)
     endif
     return associations
 endfunction
+" }}}
 
 function! s:base_name(name)
     let name = a:name
-    if name =~ '_controller' 
-        let splits = split(name, '_')
-        if len(splits) > 2 
-            return join(splits[0:-3], '_') . '_' . s:singularize(splits[-2])
-        endif 
+    if name =~ 'Controller' 
+        let splits = split(name, 'C')
         return s:singularize(splits[0])
     elseif s:is_plural(name)
         return s:singularize(name)
@@ -231,6 +236,7 @@ function! s:base_name(name)
     endif
 endfunction
 
+" Helper functions --------------------------------------------------------- {{{
 function! s:in_list(list, el)
     " Checks if the given element is a member of the given list
     let list = filter(a:list, 'v:val == a:el')
@@ -240,7 +246,9 @@ endfunction
 function! s:sub(str,pat,rep)
     return substitute(a:str, '\v\C'.a:pat, a:rep, '')
 endfunction
+" }}}
 
+" Inflection --------------------------------------------------------------- {{{
 function! s:singularize(word)
     " Singularize an (english) word. Borrowed from github.com/tpope/vim-rails
     " Ex. boxes => box
@@ -282,15 +290,17 @@ endfunction
 function! s:is_plural(word)
     return s:pluralize(s:singularize(a:word)) == a:word
 endfunction
+" }}}
 
 function! s:match_controller(base_name)
-    return s:pluralize(a:base_name) . '_controller'
+    return s:pluralize(a:base_name) . 'Controller'
 endfunction
 
 function! s:match_view(base_name)
     return s:pluralize(a:base_name)
 endfunction
 
+" Doc opener --------------------------------------------------------------- {{{
 function! s:open_doc(type,...)
     let url = 'http://api.cakephp.org/'
     if a:0 > 0
@@ -313,6 +323,7 @@ function! s:open_doc(type,...)
         endif
     endif
 endfunction
+" }}}
 
 function! s:get_function_name()
     try
@@ -330,7 +341,7 @@ endfunction
 
 function! s:grep_app_root(bang, pattern)
     let associations = s:associate()
-    if !empty(associations) && s:OS != 'windows'
+    if !empty(associations) && executable('grep')
         if a:bang
             exec '! grep -r --color ' . a:pattern . ' ' . associations.app
         else
@@ -339,8 +350,8 @@ function! s:grep_app_root(bang, pattern)
             let exclusions .= '--exclude="' . associations.webroot . s:DS . 'test.php" '
             exec '! grep -r  --color ' . exclusions . a:pattern . ' ' . associations.app
         endif
-    elseif s:OS == 'windows'
-        s:error_message("Sorry this command isn't available on your OS")
+    elseif !executable('grep') 
+        s:error_message("Error: grep isn't executable.")
     else
         s:error_message("CakePHP app not found")
     endif
@@ -356,7 +367,7 @@ endfunction
 
 function! s:glob_directory(direc, pattern)
     let associations = s:associate()
-    if has_key(associations,a:direc)
+    if has_key(associations, a:direc)
         let files = split(glob(associations[a:direc] . s:DS . '*' . a:pattern),'\n')
         let files = map(files, 'remove(split(v:val, s:DS),-1)')
         let files = map(files, 'remove(split(v:val, a:pattern),0)')
@@ -365,12 +376,13 @@ function! s:glob_directory(direc, pattern)
     return []
 endfunction
 
+" Custom completion functions ---------------------------------------------- {{{
 function! s:controller_comp(A,L,P)
-    return s:arg_match(add(s:glob_directory('controllers', '_controller.php'), 'app'), a:A)
+    return s:arg_match(add(s:glob_directory('controllers', 'Controller.php'), 'App'), a:A)
 endfunction
 
 function! s:model_comp(A,L,P)
-    return s:arg_match(add(s:glob_directory('models', '.php'), 'app'), a:A)
+    return s:arg_match(s:glob_directory('models', '.php'), a:A)
 endfunction
 
 function! s:view_comp(A,L,P)
@@ -420,11 +432,13 @@ endfunction
 function! s:component_comp(A,L,P)
     return s:arg_match(s:glob_directory('components', '.php'), a:A)
 endfunction
+" }}}
 
 function! s:error_message(msg)
     echo '[cakephp.vim] ' . a:msg
 endfunction
 
+" Command declarations ---------------------------------------------------- {{{ 
 function! s:set_commands()
     command! -n=? -complete=customlist,s:controller_comp Ccontroller call s:open_controller('e', <f-args>)
     command! -n=? -complete=customlist,s:controller_comp CVcontroller call s:open_controller('vsp', <f-args>)
@@ -450,9 +464,6 @@ function! s:set_commands()
     command! -n=? -complete=customlist,s:behavior_comp Cbehavior call s:open_file('behaviors', 'php', 'e', <f-args>)
     command! -n=? -complete=customlist,s:behavior_comp CVbehavior call s:open_file('behaviors', 'php', 'vsp', <f-args>)
     command! -n=? -complete=customlist,s:behavior_comp CSbehavior call s:open_file('behaviors', 'php', 'sp', <f-args>)
-    command! -n=? -complete=customlist,s:helper_comp Chelper call s:open_file('helpers', 'php', 'e', <f-args>)
-    command! -n=? -complete=customlist,s:helper_comp CVhelper call s:open_file('helpers', 'php', 'vsp', <f-args>)
-    command! -n=? -complete=customlist,s:helper_comp CShelper call s:open_file('helpers', 'php', 'sp', <f-args>)
     command! -n=? -complete=customlist,s:component_comp Ccomponent call s:open_file('components', 'php', 'e', <f-args>)
     command! -n=? -complete=customlist,s:component_comp CVcomponent call s:open_file('components', 'php', 'vsp', <f-args>)
     command! -n=? -complete=customlist,s:component_comp CScomponent call s:open_file('components', 'php', 'sp', <f-args>)
@@ -463,8 +474,7 @@ function! s:set_commands()
     command! -n=? CLdoc call s:open_doc('lynx', <f-args>)
     command! -n=1 -bang Cgrep call s:grep_app_root(<bang>0, <f-args>)
 endfunction
-
-call s:startup()
+" }}}
 
 autocmd BufEnter * :call s:reset_statusline()
 autocmd BufEnter *.ctp,*.php,*.js,*.css,*.log :call s:startup()
