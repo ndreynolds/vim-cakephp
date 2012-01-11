@@ -1,6 +1,6 @@
 " cakephp.vim
 " A vim plugin for navigating and managing CakePHP projects
-" Version: 1.2
+" Version: 1.3
 " Author: Nick Reynolds
 " Repository: http://github.com/ndreynolds/vim-cakephp
 " License: Public Domain

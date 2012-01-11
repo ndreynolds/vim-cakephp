@@ -5,10 +5,12 @@ mimic the functionality of rails.vim in the Cake environment. It's not quite
 there yet, but I'm slowly adding things that (I think) make using Cake easier 
 and faster.
 
-*Note about CakePHP 2.0:*
-The naming conventions changed quite a bit from version 1.3 to 2.0. I'm working
-on adding support for both to the plugin, but for now you can get by with the
-`2.0-support` branch. Just check it out with `git checkout 2.0-support`.
+*Note about CakePHP versions:*
+CakePHP's naming conventions changed quite a bit from version 1.3 to 2.0. The 
+`master` branch supports CakePHP 2.0+ but not 1.3. For 1.3 and below, you can 
+checkout the tag `1.3` (`git checkout 1.3`) which points to the last commit 
+before the 2.0 shift. Simultaneous support for both CakePHP versions is on the 
+todo list.
 
 Installation
 --------------------------------------------------------------------------------
