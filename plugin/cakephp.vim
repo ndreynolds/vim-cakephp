@@ -484,4 +484,4 @@ endfunction
 " }}}
 
 autocmd BufEnter * :call s:reset_statusline()
-autocmd BufEnter *.ctp,*.php,*.js,*.css,*.log :call s:startup()
+autocmd BufEnter *.ctp,*.php,*.js,*.coffee,*.css,*.log :call s:startup()
