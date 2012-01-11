@@ -409,6 +409,10 @@ function! s:js_comp(A,L,P)
     return s:arg_match(s:glob_directory('js', '.js'), a:A)
 endfunction
 
+function! s:coffee_comp(A,L,P)
+    return s:arg_match(s:glob_directory('js', '.coffee'), a:A)
+endfunction
+
 function! s:log_comp(A,L,P)
     return s:arg_match(s:glob_directory('logs', '.log'), a:A)
 endfunction
@@ -458,6 +462,9 @@ function! s:set_commands()
     command! -n=? -complete=customlist,s:js_comp Cjs call s:open_file('js', 'js', 'e', <f-args>)
     command! -n=? -complete=customlist,s:js_comp CVjs call s:open_file('js', 'js', 'vsp', <f-args>)
     command! -n=? -complete=customlist,s:js_comp CSjs call s:open_file('js', 'js', 'sp', <f-args>)
+    command! -n=? -complete=customlist,s:coffee_comp Ccoffee call s:open_file('js', 'coffee', 'e', <f-args>)
+    command! -n=? -complete=customlist,s:coffee_comp CVcoffee call s:open_file('js', 'coffee', 'vsp', <f-args>)
+    command! -n=? -complete=customlist,s:coffee_comp CScoffee call s:open_file('js', 'coffee', 'sp', <f-args>)
     command! -n=? -complete=customlist,s:layout_comp Clayout call s:open_file('layouts', 'ctp', 'e', <f-args>)
     command! -n=? -complete=customlist,s:layout_comp CVlayout call s:open_file('layouts', 'ctp', 'vsp', <f-args>)
     command! -n=? -complete=customlist,s:layout_comp CSlayout call s:open_file('layouts', 'ctp', 'sp', <f-args>)
