@@ -1,6 +1,6 @@
 cakephp.vim
 ================================================================================
-A vim plugin for navigating and managing CakePHP applications. The goal is to 
+A Vim plugin for navigating and managing CakePHP applications. The goal is to 
 mimic the functionality of rails.vim in the Cake environment. It's not quite 
 there yet, but I'm slowly adding things that (I think) make using Cake easier 
 and faster.
@@ -14,21 +14,15 @@ todo list.
 
 Installation
 --------------------------------------------------------------------------------
-Using vim-pathogen and Git submodules:
+With Pathogen, it's as easy as cloning the repository into your `bundle` 
+directory.
 
     $ git submodule add git://github.com/ndreynolds/vim-cakephp.git bundle/cakephp
-
-If you're not organizing your plugins with Pathogen and Git, clone the plugin 
-and put it wherever you put the others. 
-
-    $ git clone git://github.com/ndreynolds/vim-cakephp.git
-
-That's it.
 
 Getting Started (see [doc/cakephp.vim][1] for the full documentation)
 --------------------------------------------------------------------------------
 Start working on your Cake application as you normally would. No need to set any
-variables, cakephp.vim will do all the work. 
+variables, **cakephp.vim** will do all the work. 
 
 ### Just a few of the things you can do: ###
 
@@ -48,18 +42,32 @@ You can also run these with an argument:
 
 * `:Cview [name]` to open the specified and associated view file.
 
-(You don't need to use file extensions, or include '_controller', the plugin will
-do all this for you. For example, both `:Ccontroller posts` and `:Ccontroller post`
-will open the posts_controller.php file.)
+Say you want to open the file in a tab, split window, vertically split window,
+or even read it into the current buffer:
+
+* Just use the syntax `:C[S,V,T,R][command]`
+* For example, `:CRcontroller` will read in the associated controller. 
+* `:CTmodel Post` will open the Post model in a new tab.
+
+(You don't need to use file extensions, or include the controller suffix, the 
+plugin will do all this for you. For example, both `:Ccontroller posts` and 
+`:Ccontroller post` will open the PostsController.php file.)
 
 Open a stylesheet:
 
-* `:Ccss [name]` opens the given stylesheet.
+* `:Ccss [name]` opens the given (CSS) stylesheet.
+* `:Cless [name]` opens the given LESS stylesheet.
+* `:Csass [name]` opens the given SASS stylesheet.
 
 Search the CakePHP API docs:
 
-* `:Cdoc [query]` pulls up results in the default browser (if you're working locally).
-* `:CLdoc [query]` pulls up results in Lynx (for working remotely).
+* `:Cdoc [query]` pulls up results in the default browser (if you're working 
+  locally).
+* `:Cldoc [query]` pulls up results in Lynx (for when your working over SSH).
+
+But that's not all, you also get commands to open Elements, Emails, Tasks, 
+Commands, Helpers, Components, Pages, Scaffolds, Tests, and more (for the low, 
+low price of $19.99)...
 
 Most commands have tab completion, so you'll only need a few keystrokes to jump 
 to any given file. Commands that open files all have variants for vertical and 
@@ -68,7 +76,10 @@ to check out the docs if you use this plugin.
 
 See [doc/cakephp.vim][1] for the full documentation.
 
-If you have vim configured to automatically load plugin help files, you can call
-this documentation with `:help cakephp` from within vim.
+If you have Vim configured to automatically load plugin help files, you can call
+the documentation with `:help cakephp` from within Vim.
+
+And of course, if you'd like to help, or want a feature I didn't think of, 
+submit a pull request.
 
 [1]: https://github.com/ndreynolds/vim-cakephp/blob/master/doc/cakephp.txt

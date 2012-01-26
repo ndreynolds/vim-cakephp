@@ -1,6 +1,6 @@
 " cakephp.vim
 " A vim plugin for navigating and managing CakePHP projects
-" Version: 1.3
+" Version: 1.4
 " Author: Nick Reynolds
 " Repository: http://github.com/ndreynolds/vim-cakephp
 " License: Public Domain
@@ -188,18 +188,28 @@ function! s:build_associations(...)
     let associations = {
         \ 'name'        : name,
         \ 'app'         : app_root,
-        \ 'webroot'     : s:pjoin(app_root, 'webroot'),
-        \ 'controllers' : s:pjoin(app_root, 'Controller'),
-        \ 'models'      : s:pjoin(app_root, 'Model'),
-        \ 'views'       : s:pjoin(app_root, 'View'),
-        \ 'tmp'         : s:pjoin(app_root, 'tmp'),
         \ 'config'      : s:pjoin(app_root, 'Config'),
-        \ 'css'         : s:pjoin(app_root, 'webroot', 'css'),
-        \ 'js'          : s:pjoin(app_root, 'webroot', 'js'),
-        \ 'logs'        : s:pjoin(app_root, 'tmp', 'logs'),
-        \ 'layouts'     : s:pjoin(app_root, 'View', 'Layouts'),
+        \ 'consoles'    : s:pjoin(app_root, 'Console'),
+        \ 'commands'    : s:pjoin(app_root, 'Console', 'Command'),
+        \ 'tasks'       : s:pjoin(app_root, 'Console', 'Command', 'Task'),
+        \ 'controllers' : s:pjoin(app_root, 'Controller'),
+        \ 'components'  : s:pjoin(app_root, 'Controller', 'Component'),
+        \ 'models'      : s:pjoin(app_root, 'Model'),
         \ 'behaviors'   : s:pjoin(app_root, 'Model', 'Behavior'),
-        \ 'components'  : s:pjoin(app_root, 'Controller', 'Component') }
+        \ 'datasources' : s:pjoin(app_root, 'Model', 'Datasource'),
+        \ 'tests'       : s:pjoin(app_root, 'Test'),
+        \ 'tmp'         : s:pjoin(app_root, 'tmp'),
+        \ 'logs'        : s:pjoin(app_root, 'tmp', 'logs'),
+        \ 'views'       : s:pjoin(app_root, 'View'),
+        \ 'layouts'     : s:pjoin(app_root, 'View', 'Layouts'),
+        \ 'elements'    : s:pjoin(app_root, 'View', 'Elements'),
+        \ 'emails'      : s:pjoin(app_root, 'View', 'Emails'),
+        \ 'pages'       : s:pjoin(app_root, 'View', 'Pages'),
+        \ 'scaffolds'   : s:pjoin(app_root, 'View', 'Scaffolds'),
+        \ 'helpers'     : s:pjoin(app_root, 'View', 'Helper'), 
+        \ 'webroot'     : s:pjoin(app_root, 'webroot'),
+        \ 'css'         : s:pjoin(app_root, 'webroot', 'css'),
+        \ 'js'          : s:pjoin(app_root, 'webroot', 'js') }
 
     " Define specific MVC associations, if possible.
     if !empty(base_name)
@@ -303,6 +313,12 @@ function! s:glob_directory(direc, pattern)
         return files
     endif
     return []
+endfunction
+
+" cd or lcd to the app_root
+function! s:app_cd(local)
+    let associations = s:associate()
+    exec ':' . (a:local ? 'lcd' : 'cd') . ' ' . associations.app . ' | :pwd'
 endfunction
 
 " }}}
@@ -542,24 +558,29 @@ endfunction
 " File completion functions ------------------------------------------------ {{{
 
 " Dictionary of file commands and (directory, pattern) pairs
+" (In alphabetical order, for your convenience)
 let s:CakeFileCommands = {
-    \ 'Ccss'      : ['css', '.css'], 
-    \ 'Cstyle'    : ['css', '.css'],
-    \ 'Cjs'       : ['js', '.js'], 
-    \ 'Ccoffee'   : ['js', '.coffee'], 
-    \ 'Cless'     : ['css', '.less'], 
-    \ 'Csass'     : ['css', '.sass'], 
-    \ 'Clayout'   : ['layouts', '.ctp'],
     \ 'Cbehavior' : ['behaviors', '.php'], 
-    \ 'Celement'  : ['elements', '.ctp'], 
-    \ 'Ctest'     : ['tests', '.php'], 
-    \ 'Cscaffold' : ['scaffolds', '.ctp'], 
-    \ 'Cpage'     : ['pages', '.ctp'], 
-    \ 'Chelper'   : ['helpers', '.php'], 
-    \ 'Cconfig'   : ['config', '.php'], 
-    \ 'Cemail'    : ['emails', '.ctp'], 
+    \ 'Ccoffee'   : ['js', '.coffee'], 
+    \ 'Ccommand'  : ['commands', '.php'],
     \ 'Ccomponent': ['components', '.php'], 
-    \ 'Clog'      : ['logs', '.log'] }
+    \ 'Cconfig'   : ['config', '.php'], 
+    \ 'Cconsole'  : ['consoles', '?'],
+    \ 'Ccss'      : ['css', '.css'], 
+    \ 'Cdatasrc'  : ['datasources', '.php'],
+    \ 'Celement'  : ['elements', '.ctp'], 
+    \ 'Cemail'    : ['emails', '.ctp'], 
+    \ 'Chelper'   : ['helpers', '.php'], 
+    \ 'Clayout'   : ['layouts', '.ctp'],
+    \ 'Cless'     : ['css', '.less'], 
+    \ 'Clog'      : ['logs', '.log'],
+    \ 'Cjs'       : ['js', '.js'], 
+    \ 'Cpage'     : ['pages', '.ctp'], 
+    \ 'Csass'     : ['css', '.sass'], 
+    \ 'Cscaffold' : ['scaffolds', '.ctp'], 
+    \ 'Cstyle'    : ['css', '.css'],
+    \ 'Ctask'     : ['tasks', '.php'],
+    \ 'Ctest'     : ['tests', '.php'] }
 
 " Command modifiers (i.e. :CSstyle to open in split window)
 let s:CakeCmdModifiers = {
@@ -624,7 +645,9 @@ function! s:set_commands()
     command! -n=? -complete=customlist,s:view_comp CTview call s:open_view('tab', <f-args>)
     command! -n=? -complete=customlist,s:view_comp CRview call s:open_view('r', <f-args>)
     command! -n=? Cdoc call s:open_doc('', <f-args>)
-    command! -n=? CLdoc call s:open_doc('lynx', <f-args>)
+    command! -n=? Cldoc call s:open_doc('lynx', <f-args>)
+    command! -n=? Ccd call s:app_cd(0, <f-args>)
+    command! -n=? Clcd call s:app_cd(1, <f-args>)
     command! -n=1 -bang Cgrep call s:grep_app_root(<bang>0, <f-args>)
     call s:add_file_cmds()
 endfunction
