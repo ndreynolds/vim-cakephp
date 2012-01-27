@@ -49,7 +49,7 @@ or even read it into the current buffer:
 * For example, `:CRcontroller` will read in the associated controller. 
 * `:CTmodel Post` will open the Post model in a new tab.
 
-(You don't need to use file extensions, or include the controller suffix, the 
+(You don't need to use file extensions, or include the controller suffix--the 
 plugin will do all this for you. For example, both `:Ccontroller posts` and 
 `:Ccontroller post` will open the PostsController.php file.)
 
@@ -63,7 +63,7 @@ Search the CakePHP API docs:
 
 * `:Cdoc [query]` pulls up results in the default browser (if you're working 
   locally).
-* `:Cldoc [query]` pulls up results in Lynx (for when your working over SSH).
+* `:Cldoc [query]` pulls up results in Lynx (for when you're working over SSH).
 
 But that's not all, you also get commands to open Elements, Emails, Tasks, 
 Commands, Helpers, Components, Pages, Scaffolds, Tests, and more (for the low, 
@@ -79,7 +79,7 @@ See [doc/cakephp.vim][1] for the full documentation.
 If you have Vim configured to automatically load plugin help files, you can call
 the documentation with `:help cakephp` from within Vim.
 
-And of course, if you'd like to help, or want a feature I didn't think of, 
+And of course, if you'd like to help, or want a feature I didn't think of,
 submit a pull request.
 
 [1]: https://github.com/ndreynolds/vim-cakephp/blob/master/doc/cakephp.txt
