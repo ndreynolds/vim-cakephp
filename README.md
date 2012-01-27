@@ -8,9 +8,9 @@ and faster.
 *Note about CakePHP versions:*
 CakePHP's naming conventions changed quite a bit from version 1.3 to 2.0. The 
 `master` branch supports CakePHP 2.0+ but not 1.3. For 1.3 and below, you can 
-checkout the tag `1.3` (`git checkout 1.3`) which points to the last commit 
-before the 2.0 shift. Simultaneous support for both CakePHP versions is on the 
-todo list.
+checkout the tag `cake-1.3-compatible` which points to the last commit before 
+the 2.0 shift. Simultaneous support for both CakePHP versions is on the todo 
+list.
 
 Installation
 --------------------------------------------------------------------------------
