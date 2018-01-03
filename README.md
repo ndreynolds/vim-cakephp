@@ -1,5 +1,9 @@
 cakephp.vim
 ================================================================================
+
+**UNMAINTAINED** I haven't worked with PHP/CakePHP in quite some time, so this 
+plugin is unfortunately no longer maintained. 
+
 A Vim plugin for navigating and managing CakePHP applications. The goal is to 
 mimic the functionality of rails.vim in the Cake environment. It's not quite 
 there yet, but I'm slowly adding things that (I think) make using Cake easier 
